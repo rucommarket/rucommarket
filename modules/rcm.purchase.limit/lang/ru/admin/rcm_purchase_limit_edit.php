@@ -1,0 +1,21 @@
+<?
+$MESS["rcm_purchase_limit_title_update"] = "Редактирование лимита #ID#";
+$MESS["rcm_purchase_limit_title_add"] = "Создание лимита";
+$MESS["rcm_purchase_limit_list"] = "Список";
+$MESS["rcm_purchase_limit_new"] = "Создать";
+$MESS["rcm_purchase_limit_delete"] = "Удалить";
+$MESS["rcm_purchase_limit_delete_confirm"] = "Подтвердить удаление";
+$MESS["rcm_purchase_limit_tab"] = "Лимит";
+$MESS["rcm_purchase_limit_tab_descr"] = "Форма редактирования лимита";
+$MESS["rcm_purchase_limit_column_active"] = "Активность";
+$MESS["rcm_purchase_limit_column_name"] = "Название";
+$MESS["rcm_purchase_limit_column_limit"] = "Лимит";
+$MESS["rcm_purchase_limit_column_date_create"] = "Дата создания";
+$MESS["rcm_purchase_limit_column_created_by"] = "Кто создал";
+$MESS["rcm_purchase_limit_column_timestamp"] = "Дата изменения";
+$MESS["rcm_purchase_limit_column_modified_by"] = "Кто изменил";
+$MESS["rcm_purchase_limit_column_user_add"] = "Выбрать";
+$MESS["rcm_purchase_limit_column_user"] = "Для пользователя";
+$MESS["rcm_purchase_limit_error_user_id"] = "Отсутствует пользователь";
+$MESS["rcm_purchase_limit_error_limit"] = "Отсутствует лимит";
+$MESS["rcm_purchase_limit_error_save"] = "Ошибка сохранения";

@@ -1,0 +1,9 @@
+<?php
+$MESS["DATA_ENTITY_ID_FIELD"] = "ID";
+$MESS["DATA_ENTITY_ACTIVE_FIELD"] = "Активность";
+$MESS["DATA_ENTITY_DATE_CREATE_FIELD"] = "Дата создания";
+$MESS["DATA_ENTITY_CREATED_BY_FIELD"] = "Кто создал";
+$MESS["DATA_ENTITY_TIMESTAMP_X_FIELD"] = "Дата изменения";
+$MESS["DATA_ENTITY_MODIFIED_BY_FIELD"] = "Кто изменил";
+$MESS["DATA_ENTITY_USER_ID_FIELD"] = "Пользователь";
+$MESS["DATA_ENTITY_LIMIT_FIELD"] = "Лимит";

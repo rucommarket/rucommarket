@@ -1,0 +1,9 @@
+<?
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_INPUT_UPDATE"] = "Сохранить настройки";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_INPUT_DEFAULT"] = "Установить по умолчанию";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_TAB_GENERAL"] = "Основные настройки";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_LIMIT"] = "Общий лимит";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_GROUPS"] = "Группы пользователей";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_DISCOUNTS"] = "Скидки на товары";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_PRICES"] = "Типы цен";
+$MESS["RCM_PURCHASE_LIMIT_OPTIONS_ACTIVE"] = "Активность лимита";

@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `rcm_purchase_limit_users`;
