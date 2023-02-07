@@ -1,16 +1,19 @@
 <div class="checkout-delivery_address">
-    <h3>Адрес</h3>
     <form id="address-form_change" class="checkout-delivery_form address" action="<?=POST_FORM_ACTION_URI?>" method="POST" name="ADDRESS_INPUT" enctype="multipart/form-data">
         <?=bitrix_sessid_post()?>
         <input type="hidden" name="action" value="check_address">
-        <div class="checkout-delivery_form_row">
+        <div>
             <div style="width: 100%">
-                <input type="text" id="address_string" name="address_string" placeholder="Введите адрес *"<?
+                <input type="text" id="address_string" name="address_string" placeholder="Введите адрес* (город, улица, дом , квартира)"<?
                     if(isset($arResult['ADDRESS']['STRING']) && !empty($arResult['ADDRESS']['STRING'])) {?>
                     value="<?=$arResult['ADDRESS']['STRING']?>"
                     <?}
-                    ?>>
-                <span id="error_code_address"></span>
+                    ?>
+                    <?if(isset($arResult['ERRORS']['ADDRESS']) && !empty($arResult['ERRORS']['ADDRESS'])) {?>
+                        class="error"
+                    <?}?>
+                    >
+                <span id="error_code_address"><?if(isset($arResult['ERRORS']['ADDRESS']) && !empty($arResult['ERRORS']['ADDRESS'])) echo $arResult['ERRORS']['ADDRESS'];?></span>
             </div>
         </div>
             <input type="hidden" name="address_lat" <?
@@ -63,7 +66,7 @@
                 value="<?=$arResult['ADDRESS']['FLAT']?>"
                 <?}
                 ?>>
-        <div class="checkout-delivery_form_row">
+        <div>
             <textarea maxlength="250" name="address_comment" placeholder="Комментарий, если необходимо"><?
                 if(isset($arResult['ADDRESS']['COMMENT']) && !empty($arResult['ADDRESS']['COMMENT'])) {
                 echo trim($arResult['ADDRESS']['COMMENT']);

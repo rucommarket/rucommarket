@@ -8,6 +8,7 @@ use \Bitrix\Main\Engine\Controller;
 use \Bitrix\Main\Application;
 use \Bitrix\Main\Web\Json;
 use \Bitrix\Main\Config\Option;
+use \Bitrix\Main\Data\Cache;
 
 
 class CheckoutAjaxController extends Controller
@@ -19,6 +20,12 @@ class CheckoutAjaxController extends Controller
                 'prefilters' => []
             ],
             'deleteCart' => [
+                'prefilters' => []
+            ],
+            'editFormContact' => [
+                'prefilters' => []
+            ],
+            'editFormAddressComment' => [
                 'prefilters' => []
             ],
         ];
@@ -45,14 +52,12 @@ class CheckoutAjaxController extends Controller
 
         $basket = Sale\Basket::loadItemsForFUser(Sale\Fuser::getId(), \Bitrix\Main\Context::getCurrent()->getSite());
         $context = new Sale\Discount\Context\Fuser($basket->getFUserId());
-        $discounts = Sale\Discount::buildFromBasket($basket, $context);
-        $dData = $discounts->calculate()->getData();
-        if (isset($dData['BASKET_ITEMS']))
-            $basket->applyDiscount($dData['BASKET_ITEMS']);
         $basketItems = $basket->getBasketItems();
         foreach($basketItems as $item):
             if($item->getId() == $id) {
                 $item->setField('QUANTITY', $quantity);
+                $discounts = Sale\Discount::buildFromBasket($basket, $context);
+                $dData = $discounts->calculate()->getData();
                 if (isset($dData['BASKET_ITEMS']))
                     $basket->applyDiscount($dData['BASKET_ITEMS']);
                 $result['BASKET_ITEM'] = [
@@ -75,6 +80,8 @@ class CheckoutAjaxController extends Controller
             ];
         endforeach;
         $result['BASKET']['PRICE'] = number_format($basket->getPrice(),2,'.',' ');
+        $result['BASKET']['FULL_PRICE'] = number_format($basket->getBasePrice(),2,'.',' ');
+        $result['BASKET']['DISCOUNT_PRICE'] = '-'.number_format($basket->getBasePrice()-$basket->getPrice(),2,'.',' ');
         return (empty($this->getErrors()))?$result:null;
     }
 
@@ -107,5 +114,38 @@ class CheckoutAjaxController extends Controller
         $basket->save();
         $result['BASKET']['PRICE'] = number_format($basket->getPrice(),2,'.',' ');
         return (empty($this->getErrors()))?$result:null;
+    }
+
+    public function editFormContactAction($form)
+    {
+        $cache = Cache::createInstance();
+        $arContact = [
+            'PHONE' => $form['PHONE'],
+            'EMAIL' => $form['EMAIL'],
+            'NAME' => $form['NAME'],
+            'LAST_NAME' => $form['LAST_NAME'],
+            'SECOND_NAME' => $form['SECOND_NAME']
+        ];
+        $cache->clean("contact_".Sale\Fuser::getId(),'order_contact');
+        if ($cache->startDataCache(7200, "contact_".Sale\Fuser::getId(),'order_contact')) {
+            $cache->endDataCache($arContact);
+        }
+        //if(!empty($this->getErrors())) return NULL;
+        return $arContact;
+    }
+
+    public function editFormAddressCommentAction($comment)
+    {
+        $cache = Cache::createInstance();
+        if($cache->initCache(7200, "address_".Sale\Fuser::getId(),'addresses')) {
+            $address = $cache->getVars();
+        } else {
+            $address = [];
+        }
+        $address['COMMENT'] = $comment;
+        $cache->clean("address_".Sale\Fuser::getId(),'addresses');
+        if ($cache->startDataCache(3600, "address_".Sale\Fuser::getId(),'addresses')) {
+            $cache->endDataCache($address);
+        }
     }
 }

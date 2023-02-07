@@ -1,0 +1,17 @@
+.running_line-item {
+    text-align: center;
+    height: 1.4em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    a {
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        &:hover {
+            text-decoration-color: #ffffff;
+        }
+    }
+}

@@ -1,4 +1,6 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+$APPLICATION->AddChainItem('Оформление заказа',$arParams['SEF_FOLDER'].$arParams['SEF_URL_TEMPLATES']['order']);
+
 $this->setFrameMode(false);
 \CJSCore::Init(["jquery","suggestions","masked_input"]);
 
@@ -6,156 +8,146 @@ use \Bitrix\Main,
     \Bitrix\Main\Localization\Loc,
     \Bitrix\Main\Page\Asset;
 
+global $USER;
+
 $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
+$this->addExternalCss("/local/templates/authentica/css/dolyame_description.css");
 ?>
-<?if(is_array($arResult["COLUMN_LIST"]) && !empty($arResult["COLUMN_LIST"])):?>
 <style>
-    section.checkout .checkout-cart .checkout-cart_container .checkout-cart_row {
-        grid-template-columns: 45% repeat(<?=(count($arResult["COLUMN_LIST"]) - 1)?>,1fr);
+    .header {
+        display: none;
+    }
+    .footer {
+        display: none;
+    }
+    <?if($arResult['IS_MOBILE']):?>
+    .skin{
+        padding-left: 0;
+        padding-right: 0;
+    }
+    <?endif;?>
+    .skin > .breadcrumbs {
+        display: none;
+    }
+    .innerpage-wrapper .page-content {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .innerpage-wrapper .wrapper__push {
+        height: 0;
     }
 </style>
-<?endif;?>
 
-<section class="checkout">
+<section class="checkout-order<?if($arResult['IS_MOBILE']) echo ' mobile';?>">
+    <div class="checkout-order_registration">
+        <a href="/">
+            <img src="<?=SITE_TEMPLATE_PATH?>/img/logo.png" alt="Профессиональная косметика на сайте Authentica" title="Интернет-магазин профессиональной косметики Authentica.love" />
+        </a>
+    <?$APPLICATION->IncludeComponent("bitrix:breadcrumb", ".default", Array(
+                    "PATH" => "",	// Путь, для которого будет построена навигационная цепочка (по умолчанию, текущий путь)
+                    "SITE_ID" => "s1",	// Cайт (устанавливается в случае многосайтовой версии, когда DOCUMENT_ROOT у сайтов разный)
+                    "START_FROM" => "0",	// Номер пункта, начиная с которого будет построена навигационная цепочка
+                ),
+                $component
+            );?>
     <h1 class="checkout-header">
         Оформление заказа
-        <svg>
-            <path d="M 8.92578 4.359L 17.1068 4.359C 17.1068 1.304 16.2488 1.227 13.0168 1.227C 9.78378 1.227 8.92578 1.305 8.92578 4.359L 8.92578 4.359ZM 0 4.359L 7.628 4.359C 7.628 0.627 9.068 0 13.017 0C 16.966 0 18.405 0.627 18.405 4.359L 26.034 4.359L 26.034 12.181C 26.034 16.482 25.835 20.002 21.283 20.002L 4.75 20.002C 0.199 20.002 0 16.483 0 12.181L 0 4.359Z"></path>
-        </svg>
     </h1>
-    <div class="checkout-cart" id="checkout-cart">
-        <?if($arResult['BASKET']['ITEMS']):?>
-            <?include('include/order/basket.php');?>
-        <?else:?>
-            <div class="checkout-empty">
-                <?= Loc::getMessage('YOUR_CART_EMPTY') ?><br>
-                <?=Loc::getMessage(
-			'EMPTY_BASKET_HINT',
-			array(
-				'#A1#' => '<a href="/">',
-				'#A2#' => '</a>'
-			))?>
-			<?
-			global $USER;
-			if(!$USER->IsAuthorized()) {
-				echo Loc::getMessage(
-					'EMPTY_BASKET_HINT_AUTH',
-					array(
-						'#A1#' => '<a style="cursor:pointer;color: #7A7A7A;text-decoration: none;" onclick="authLink();" data-popup-wrapper="auth" data-popup-opener="auth" data-popup-href="/local/ajax/auth.php?backurl=" data-module-inited="Y">',
-						'#A2#' => '</a>',
-					));
-			}?>
-            </div>
-        <?endif;?>
-    </div>
-    
     <?if($arResult['BASKET']['ITEMS']):?>
-    <h2>Информация о доставке</h2>
-    <div class="checkout-delivery">
+    <?/*$isGroup45 = false;
+        if($USER->IsAuthorized() && in_array(45, $USER->GetUserGroup($USER->GetID()))) {
+            $userEmail=$USER->GetEmail();
+            $isGroup45 = true;
+    }*/?>
+    <h2>Контактные данные</h2>
         <div class="checkout-delivery_profile">
-            <h3>Контактные данные</h3>
-            <form id="delivery-form_contact" class="checkout-delivery_form" action="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['payment']?>" method="POST" name="CONTACT_INPUT" enctype="multipart/form-data">
+            <form id="delivery-form_contact" class="checkout-delivery_form" action="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['order']?>" method="POST" name="CONTACT_INPUT" enctype="multipart/form-data">
                 <?=bitrix_sessid_post()?>
                 <input type="hidden" name="action" value="payment">
                 <div class="checkout-delivery_form_row">
-                    <input type="tel" id="order_phone" name="PHONE" placeholder="Телефон * (без 8-ки)" required<?
-                    if($arResult['CONTACT']['PHONE']) echo ' value="'.$arResult['CONTACT']['PHONE'].'"';
-                    ?>>
-                    <input type="email" name="EMAIL" placeholder="Эл. почта *" required<?
-                    if($arResult['CONTACT']['EMAIL']) echo ' value="'.$arResult['CONTACT']['EMAIL'].'"';
-                    ?>>
+                    <input type="text" id="order_phone" name="PHONE" placeholder="Телефон* (без 8-ки)" required<?
+                        if($arResult['CONTACT']['PHONE']) echo ' value="'.$arResult['CONTACT']['PHONE'].'"';
+                        ?>
+                        <?if(isset($arResult['ERRORS']['CONTACT']['PHONE']) && !empty($arResult['ERRORS']['CONTACT']['PHONE']))
+                        echo ' class="error"';
+                        ?>
+                    >
+                    <input type="text" name="EMAIL" placeholder="Эл. почта*" required<?
+                        if($arResult['CONTACT']['EMAIL']) echo ' value="'.$arResult['CONTACT']['EMAIL'].'"';
+                        ?>
+                        <?if(isset($arResult['ERRORS']['CONTACT']['EMAIL']) && !empty($arResult['ERRORS']['CONTACT']['EMAIL']))
+                        echo ' class="error"';
+                        ?>
+                    >
                 </div>
                 <div class="checkout-delivery_form_row">
-                    <input type="text" name="LAST_NAME" placeholder="Фамилия *" required<?
-                    if($arResult['CONTACT']['LAST_NAME']) echo ' value="'.$arResult['CONTACT']['LAST_NAME'].'"';
-                    ?>>
+                    <input type="text" name="LAST_NAME" placeholder="Фамилия*" required<?
+                        if($arResult['CONTACT']['LAST_NAME']) echo ' value="'.$arResult['CONTACT']['LAST_NAME'].'"';
+                        ?>
+                        <?if(isset($arResult['ERRORS']['CONTACT']['LAST_NAME']) && !empty($arResult['ERRORS']['CONTACT']['LAST_NAME']))
+                        echo ' class="error"';
+                        ?>
+                    >
+                    <input type="text" name="NAME" placeholder="Имя*" required<?
+                        if($arResult['CONTACT']['NAME']) echo ' value="'.$arResult['CONTACT']['NAME'].'"';
+                        ?>
+                        <?if(isset($arResult['ERRORS']['CONTACT']['NAME']) && !empty($arResult['ERRORS']['CONTACT']['NAME']))
+                        echo ' class="error"';
+                        ?>
+                    >
                 </div>
                 <div class="checkout-delivery_form_row">
-                    <input type="text" name="NAME" placeholder="Имя *" required<?
-                    if($arResult['CONTACT']['NAME']) echo ' value="'.$arResult['CONTACT']['NAME'].'"';
-                    ?>>
-                </div>
-                <div class="checkout-delivery_form_row test-input">
                     <input type="text" name="SECOND_NAME" placeholder="Отчество"<?
                     if($arResult['CONTACT']['SECOND_NAME']) echo ' value="'.$arResult['CONTACT']['SECOND_NAME'].'"';
                     ?>>
                 </div>
                 <input type="submit" id="contact-form_submit" style="display:none;">
             </form>
+            <?if(isset($arResult['ERRORS']['CONTACT']) && !empty($arResult['ERRORS']['CONTACT'])):?>
+            <div id="error_contact">Не заполнены обязательные поля</div>
+            <?endif?>
         </div>
+        <h2>Адрес доставки</h2>
         <?include('include/order/address.php');?>
 
-        <div class="checkout-shipment">
-            <h3>Доставка</h3>
-            <?if(isset($arResult['DELIVERIES']) && !empty($arResult['DELIVERIES'])):?>
-                <form id="delivery-form_change" action="<?=POST_FORM_ACTION_URI?>" method="POST" name="DELIVERY_INPUT" enctype="multipart/form-data">
-                    <?=bitrix_sessid_post()?>
-                    <input type="hidden" name="action" value="check_delivery">
-                    <div class="delivery-list">
-                        <div class="delivery-list_tabs">
-                        <?if($arResult['DELIVERIES_MULTI'][0] === true) {?>
-                            <div class="delivery-list_tab<?if($arResult['DELIVERIES_MULTI']['CHECKED'] === 0){echo ' active';}?>" data-multi="0">Доставка в руки</div>
-                        <?}?>
-                        <?if($arResult['DELIVERIES_MULTI'][1] === true) {?>
-                            <div class="delivery-list_tab<?if($arResult['DELIVERIES_MULTI']['CHECKED'] === 1){echo ' active';}?>" data-multi="1">Пункт выдачи</div>
-                        <?}?>
-                        </div>
-                        <?foreach($arResult['DELIVERIES'] as $delivery):?>
-                            <div class="delivery-item<?
-                                if($arResult['DELIVERIES_MULTI']['CHECKED'] === $delivery['DATA']['MULTIVARIANT'])
-                                    echo ' active';
-                                ?>" data-multi="<?=$delivery['DATA']['MULTIVARIANT'];?>">
-                                <input type="radio" name="check_delivery" id="delivery-input-<?=$delivery['ID']?>" value="<?=$delivery['ID']?>" onChange="BX('delivery-form_submit').click();"<?
-                                if($delivery['CHECKED'] == 'Y') echo " checked";
-                                ?>>
-                                <label for="delivery-input-<?=$delivery['ID']?>">
-                                    <span class="delivery_title"><?=$delivery['NAME']?></span>
-                                    ( <span class="delivery_price"><?=$delivery['PRICE']?></span> руб. )
-                                    <span class="delivery_desc"><?=$delivery['DATA']['DELIVERY_TEXT']?></span>
-                                </label>
-                            </div>
-                        <?endforeach;?>
-                    </div>
-                    <?foreach($arResult['DELIVERIES'] as $delivery):?>
-                        <?if($delivery['CHECKED'] == 'Y' && $delivery['DATA']['MULTIVARIANT'] == 1):?>
-                            <select class="delivery-multi_select" name="check_delivery_multi">
-                                <?foreach($delivery['DATA']['DELIVERY_VARIANTS'] as $variant){?>
-                                    <option value="<?=$variant['Id']?>"><?=$variant['Address']?> (<?=$variant['Name']?>) | <?=$variant['Phone']?></option>
-                                <?}?>
-                            </select>
-                            <input type="hidden" name="CHECK_DELIVERY_ID">
-                            <input type="hidden" name="CHECK_DELIVERY_NAME">
-                        <?endif;?>
-                    <?endforeach;?>
-                    <div id="delivery-map" style="width: 500px;height: 500px;"></div>
-                    <input type="submit" id="delivery-form_submit" style="display:none;">
-                </form>
-            <?else:?>
-                <div class="checkout-shipment_not">
-                    Нет доступных способов доставки
-                </div>
-            <?endif;?>
-        </div>
+        <h2>
+            Способ доставки
+            <span style="display:block;font-size:12px;color:#CECECE;text-transform: none;">
+                * Заказы передаются в службу доставки только в рабочие дни
+            </span>
+        </h2>
+        <?include('include/order/delivery.php');?>
 
-        <div>
+        <h2>Способы оплаты</h2>
         <div class="checkout-payment">
-            <h3>Оплата</h3>
             <?if(isset($arResult['PAYMENTS']) && !empty($arResult['PAYMENTS'])):?>
                 <form id="payment-form_change" action="<?=POST_FORM_ACTION_URI?>" method="POST" name="PAYMENT_INPUT" enctype="multipart/form-data">
                     <?=bitrix_sessid_post()?>
                     <input type="hidden" name="action" value="check_payment">
                     <div class="payment-list">
                         <?foreach($arResult['PAYMENTS'] as $payment):?>
-                            <div class="payment-item">
+                            <div class="payment-item<?
+                                if($payment['CHECKED'] == 'Y') echo " active";
+                                ?>">
                                 <input type="radio" name="check_payment" id="payment-input-<?=$payment['ID']?>" value="<?=$payment['ID']?>" onChange="BX('payment-form_submit').click();"<?
                                 if($payment['CHECKED'] == 'Y') echo " checked";
                                 ?>>
                                 <label for="payment-input-<?=$payment['ID']?>">
+                                    <?if($payment['LOGOTIP']){?>
+                                        <img src="<?=CFile::GetPath($payment['LOGOTIP']);?>" alt="<?=$payment['NAME']?>">
+                                    <?}?>
                                     <span class="payment_title"><?=$payment['NAME']?></span>
                                 </label>
                             </div>
                         <?endforeach;?>
                     </div>
+                    <?foreach($arResult['PAYMENTS'] as $payment):?>
+                        <?if($payment['CHECKED'] == 'Y' && !empty($payment['DESCRIPTION'])):?>
+                            <div class="payment-description">
+                                <?=$payment['DESCRIPTION'];?>
+                            </div>
+                        <?endif;?>
+                    <?endforeach;?>
                     <input type="submit" id="payment-form_submit" style="display:none;">
                 </form>
             <?else:?>
@@ -164,124 +156,99 @@ $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
                 </div>
             <?endif;?>
         </div>
-        <?include('include/order/promo.php');?>
-        </div>
-    </div>
-
-    <div class="checkout-gift">
-        <?$APPLICATION->IncludeComponent(
-	        "custom:sale.gift.basket", 
-	        ".default", 
-	        array(
-	        	"SHOW_PRICE_COUNT" => "1",
-	        	"PRODUCT_SUBSCRIPTION" => "N",
-	        	"PRODUCT_ID_VARIABLE" => "id",
-	        	"PARTIAL_PRODUCT_PROPERTIES" => "N",
-	        	"USE_PRODUCT_QUANTITY" => "N",
-	        	"ACTION_VARIABLE" => "actionGift",
-	        	"ADD_PROPERTIES_TO_BASKET" => "Y",
-	        	"BASKET_URL" => $APPLICATION->GetCurPage(),
-	        	"APPLIED_DISCOUNT_LIST" => $arResult["APPLIED_DISCOUNT_LIST"],
-	        	"FULL_DISCOUNT_LIST" => $arResult["FULL_DISCOUNT_LIST"],
-	        	"TEMPLATE_THEME" => '.default',
-	        	"PRICE_VAT_INCLUDE" => "Y",
-	        	"CACHE_GROUPS" => "N",
-	        	"BLOCK_TITLE" => 'Выберите подарок',
-	        	"HIDE_BLOCK_TITLE" => "N",
-	        	"TEXT_LABEL_GIFT" => 'Подарок',
-	        	"PRODUCT_QUANTITY_VARIABLE" => 'quantity',
-	        	"PRODUCT_PROPS_VARIABLE" => 'prop',
-	        	"SHOW_OLD_PRICE" => "Y",
-	        	"SHOW_DISCOUNT_PERCENT" => "N",
-	        	"SHOW_NAME" => "Y",
-	        	"SHOW_IMAGE" => "Y",
-	        	"MESS_BTN_BUY" => 'Выбрать',
-	        	"MESS_BTN_DETAIL" => 'Подробнее',
-	        	"PAGE_ELEMENT_COUNT" => 40,
-	        	"CONVERT_CURRENCY" => "N",
-	        	"HIDE_NOT_AVAILABLE" => "Y",
-	        	"LINE_ELEMENT_COUNT" => 40,
-	        	"COMPONENT_TEMPLATE" => ".default",
-	        	"IBLOCK_TYPE" => "catalog",
-	        	"IBLOCK_ID" => "2",
-	        	"SHOW_FROM_SECTION" => "N",
-	        	"SECTION_ID" => $GLOBALS["CATALOG_CURRENT_SECTION_ID"],
-	        	"SECTION_CODE" => "",
-	        	"SECTION_ELEMENT_ID" => $GLOBALS["CATALOG_CURRENT_ELEMENT_ID"],
-	        	"SECTION_ELEMENT_CODE" => "",
-	        	"DEPTH" => "2",
-	        	"MESS_BTN_SUBSCRIBE" => "Подписаться",
-	        	"DETAIL_URL" => "",
-	        	"CACHE_TYPE" => "A",
-	        	"CACHE_TIME" => "36000000",
-	        	"PRICE_CODE" => array(
-	        		0 => "BASE",
-	        	),
-	        	"SHOW_PRODUCTS_2" => "Y",
-	        	"PROPERTY_CODE_2" => array(
-	        		0 => "VOLUME",
-	        		1 => "BRAND_REF",
-	        		2 => "",
-	        	),
-	        	"CART_PROPERTIES_2" => array(
-	        		0 => "",
-	        		1 => "",
-	        	),
-	        	"ADDITIONAL_PICT_PROP_2" => "MORE_PHOTO",
-	        	"SHOW_PRODUCTS_28" => "Y",
-	        	"PROPERTY_CODE_28" => array(
-	        		0 => "VOLUME",
-	        		1 => "BRAND_REF",
-	        		2 => "",
-	        	),
-	        	"CART_PROPERTIES_28" => array(
-	        		0 => "",
-	        		1 => "",
-	        	),
-	        	"ADDITIONAL_PICT_PROP_28" => "MORE_PHOTO",
-	        	"SHOW_PRODUCTS_32" => "N",
-	        	"PROPERTY_CODE_32" => array(
-	        		0 => "VOLUME",
-	        	),
-	        	"CART_PROPERTIES_32" => array(
-	        	),
-	        	"ADDITIONAL_PICT_PROP_32" => "MORE_PHOTO",
-	        	"SHOW_PRODUCTS_36" => "N",
-	        	"PROPERTY_CODE_36" => array(
-	        	),
-	        	"CART_PROPERTIES_36" => array(
-	        	),
-	        	"ADDITIONAL_PICT_PROP_36" => "",
-	        	"HIDE_PRODUCTS_IN_BASKET" => "N"
-	        ),
-	        false
-        );?>
-    </div>
+        <?if(!$arResult['IS_MOBILE']):?>
+        <a href="<?=$arParams['SEF_FOLDER']?>" class="checkout-btn_prev_step" onclick="void(0);">
+            <svg width="8" height="11" viewBox="0 0 8 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.46195 5.5L7.99832 0.690857L7.33003 0L0.998322 5.5L7.33003 11L7.99832 10.3091L2.46195 5.5Z" fill="#FE4A5B"/>
+            </svg>Вернуться в корзину
+        </a>
+        <?endif;?>
     
-    <div class="checkout-footer">
-        <div class="checkout-cart_delivery">
-            <div class="cart-delivery_text">Доставка:</div>
-            <div class="cart-delivery_price">
-                <span id="cart-delivery-price">
-                    <?=$arResult['ORDER']['DELIVERY_PRICE']?>
-                </span> руб.
+    <?else:?>
+        <div class="checkout-empty">
+            <?= Loc::getMessage('YOUR_CART_EMPTY') ?><br>
+            <?=Loc::getMessage(
+		    	'EMPTY_BASKET_HINT',
+			    array(
+				    '#A1#' => '<a href="/">',
+				    '#A2#' => '</a>'
+			    ))?>
+			<?
+			if(!$USER->IsAuthorized()) {
+				echo Loc::getMessage(
+					'EMPTY_BASKET_HINT_AUTH',
+					array(
+						'#A1#' => '<a style="cursor:pointer;color: #7A7A7A;text-decoration: none;" onclick="authLink();" data-popup-wrapper="auth" data-popup-opener="auth" data-popup-href="/local/ajax/auth.php?backurl=" data-module-inited="Y">',
+						'#A2#' => '</a>',
+					));
+			}?>
+        </div>
+    <?endif;?>
+    </div>
+    <?if($arResult['BASKET']['ITEMS']):?>
+    <div class="checkout-order_right">
+        <div class="checkout-order_cart">
+            <div class="checkout-order_cart-title">
+                <h2>Ваш заказ</h2>
+                <span>
+                    <?=count($arResult['BASKET']['ITEMS'])?>
+                    <?if(count($arResult['BASKET']['ITEMS']) == 1) echo "товар";
+                    elseif(count($arResult['BASKET']['ITEMS']) > 1 && count($arResult['BASKET']['ITEMS']) < 5) echo "товара";
+                    elseif(count($arResult['BASKET']['ITEMS']) >= 5) echo "товаров";?>
+                </span>
             </div>
-        </div>
-        <div class="checkout-cart_total">
-            <div class="cart-total_text">всего к оплате:</div>
-            <div class="cart-total_price">
-                <span id="cart-total-price">
-                    <?=$arResult['ORDER']['PRICE']?>
-                </span> руб.
+            <?include('include/order/basket.php');?>
+            <?include('include/cart/gift.php');?>
+            <?include('include/order/promo.php');?>
+            <?include('include/order/digift.php');?>
+            <div class="checkout-order_total">
+                <div class="checkout-order_total-row">
+                    <span>Товаров на сумму</span>
+                    <span class="right"><?=rtrim(rtrim(number_format(($arResult['BASKET']['FULL_PRICE']),2,'.',' '),'0'),'.')?> ₽</span>
+                </div>
+                <div class="checkout-order_total-row">
+                    <span>Доставка</span>
+                    <span class="right"><?=rtrim(rtrim(number_format(($arResult['ORDER']['DELIVERY_PRICE']),2,'.',' '),'0'),'.')?> ₽</span>
+                </div>
+                <div class="checkout-order_total-row">
+                    <span>Выгода на товары</span>
+                    <span class="right red">- <?=rtrim(rtrim(number_format(($arResult['BASKET']['FULL_PRICE'] - $arResult['BASKET']['PRICE']),2,'.',' '),'0'),'.')?> ₽</span>
+                </div>
+                <div class="checkout-order_total-row">
+                    <span>Оплачено подарочной картой</span>
+                    <span class="right red">- <?=rtrim(rtrim(number_format((min($arResult['DIGIFT']['BALANCE_AMOUNT'],$arResult['ORDER']['PRICE'])),2,'.',' '),'0'),'.')?> ₽</span>
+                </div>
             </div>
-        </div>
-        <a onclick="BX('contact-form_submit').click();" class="btn checkout-btn_next_step">Перейти к оплате</a>
-        <div class="checkout-footer_description">
-            оплата возможна<br>
-            только по безналичному расчету
-        </div>
-        <div class="checkout-footer_icons">
-            <img src="/local/templates/authentica/img/order_ps_icons.png.webp" alt="payment-icons">
+            <div class="checkout-order_next">
+                <div class="checkout-order_next-total">
+                    <div class="checkout-order_next-total_text">всего к оплате:</div>
+                    <div class="checkout-order_next-total_price">
+                        <?if(isset($arResult['DIGIFT']['BALANCE_AMOUNT'])):?>
+                            <?if($arResult['ORDER']['PRICE'] > $arResult['DIGIFT']['BALANCE_AMOUNT']) {?>
+                                <?=rtrim(rtrim(number_format(($arResult['ORDER']['PRICE'] - $arResult['DIGIFT']['BALANCE_AMOUNT']),2,'.',' '),'0'),'.')?> ₽
+                            <?}else {?>
+                                0 ₽
+                            <?}?>
+                        <?else:?>
+                        <?=rtrim(rtrim(number_format(($arResult['ORDER']['PRICE']),2,'.',' '),'0'),'.')?> ₽
+                        <?endif;?>
+                    </div>
+                </div>
+
+                <a onclick="BX('contact-form_submit').click();" class="btn checkout-btn_next_step">Перейти к оплате</a>
+                <?if(!$USER->IsAuthorized()):?>
+                    <div class="auth-link">
+                        <span onclick="Authentica.modules.Popups.open('auth','<?=SITE_DIR?>local/ajax/auth.php?<?=$params?>','auth');">Авторизируйтесь</span>, чтобы сразу увидеть свой заказ в личном кабинете
+                    </div>
+                <?endif;?>
+            </div>
+            <?if($arResult['IS_MOBILE']):?>
+            <a href="<?=$arParams['SEF_FOLDER']?>" class="checkout-btn_prev_step" onclick="void(0);">
+                <svg width="8" height="11" viewBox="0 0 8 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2.46195 5.5L7.99832 0.690857L7.33003 0L0.998322 5.5L7.33003 11L7.99832 10.3091L2.46195 5.5Z" fill="#FE4A5B"/>
+                </svg>Вернуться в корзину
+            </a>
+            <?endif;?>
         </div>
     </div>
     <?endif;?>
@@ -290,10 +257,40 @@ $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
 <?if($arResult['BASKET']['ITEMS']):?>
 <script>
     BX.ready(function(){
-        new BX.MaskedInput({
+        /*new BX.MaskedInput({
             mask: '+7 (999) 999-9999',
             input: BX('order_phone'),
             placeholder: '_'
+        });*/
+        $("#order_phone").inputmask("+7 (999) 999-9999");
+        BX.bind(
+        BX('delivery-form_contact'), 'focusout',
+            function(e){
+                let formData = BX.ajax.prepareForm(BX("delivery-form_contact")).data;
+                BX.ajax.runComponentAction('rucommarket:checkout','editFormContact', {
+                    mode: 'ajax',
+                    data: {
+                        'form': formData,
+                    }
+                });
+            }
+        );
+        BX.bindDelegate(
+            BX('address-form_change'), 'focusout', {tagName: 'textarea'},
+                BX.proxy(function(e){
+                    value = e.target.value;
+                    BX.ajax.runComponentAction('rucommarket:checkout','editFormAddressComment', {
+                        mode: 'ajax',
+                        data: {
+                            'comment': value,
+                        }
+                    });
+                })
+        );
+        $.each($( '.error'), function(i, e){
+            $([document.documentElement, document.body]).animate({
+                scrollTop: $(e).offset().top - 100
+            }, 1000);
         });
     });
 
@@ -325,7 +322,11 @@ $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
             } else if(address.settlement) {
                 $('[name="address_city"]').val(address.settlement);
             }
+            if(address.street) {
                 $('[name="address_street"]').val(address.street);
+            } else {
+                $('[name="address_street"]').val('');
+            }
             if(address.house_type && address.house) {
                 $('[name="address_house').val(address.house);
             } else {
@@ -343,7 +344,7 @@ $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
             }
             if (!address.city && !address.settlement) {
               showMessage("Укажите населённый пункт");
-            } else if (!address.settlement && !address.street) {
+            } else if (!address.settlement && !address.street && address.kladr_id.length < 19) {
               showMessage("Укажите улицу");
             } else if (!address.house) {
               showMessage("Укажите дом");
@@ -356,32 +357,26 @@ $this->addExternalJS("https://api-maps.yandex.ru/2.1/?lang=ru_RU");
         function showMessage(message) {
             $("#error_code_address").text(message);
         }
-    });
-
-    ymaps.ready(function () {
-        var myMap = new ymaps.Map('delivery-map', {
-                center: [
-                    <?=($arResult['ADDRESS']['LAT'])?:'55.751574'?>,
-                    <?=($arResult['ADDRESS']['LON'])?:'37.573856'?>
-                ],
-                zoom: 12,
-                controls: ['geolocationControl', 'zoomControl']
-            }, {
-                geolocationControlFloat: 'right',
-                zoomControlSize: 'large'
-            }),
-        
-            placemarkHouse = new ymaps.Placemark([
-                <?=($arResult['ADDRESS']['LAT'])?:'55.751574'?>,
-                <?=($arResult['ADDRESS']['LON'])?:'37.573856'?>
-            ], {
-                hintContent: 'Адрес доставки'
-            }, {
-                preset: 'islands#redCircleDotIcon'
-            });
-        
-        myMap.geoObjects
-            .add(placemarkHouse);
+        $('#delivery-form_contact').on('input', 'input[name="NAME"]', function(){
+	        this.value = this.value.replace(/[^A-Za-zА-Яа-яЁё]/g, '');
+        });
+        $('#delivery-form_contact').on('input', 'input[name="LAST_NAME"]', function(){
+	        this.value = this.value.replace(/[^A-Za-zА-Яа-яЁё\-]/g, '');
+        });
+        $('#delivery-form_contact').on('input', 'input[name="SECOND_NAME"]', function(){
+	        this.value = this.value.replace(/[^A-Za-zА-Яа-яЁё]/g, '');
+        });
+        $('#delivery-form_contact').on('input', 'input[name="EMAIL"]', function(){
+	        this.value = this.value.replace(/[\s]/g, '');
+        });
     });
 </script>
+<?if(isset($arResult['ERRORS']['ORDER']) && !empty($arResult['ERRORS']['ORDER'])):?>
+    <div id="error_order">
+        <div class="error_order-text">
+            <?=$arResult['ERRORS']['ORDER']?>
+        </div>
+        <a href="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['order']?>" class="btn error_order-btn">Обновить состав корзины</a>
+    </div>
+<?endif?>
 <?endif;?>

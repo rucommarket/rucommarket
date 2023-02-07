@@ -2,6 +2,11 @@
 $APPLICATION->AddChainItem('Оплата заказа',$arParams['SEF_FOLDER'].$arParams['SEF_URL_TEMPLATES']['payment']);
 
 $this->setFrameMode(false);
+?>
+<?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+$APPLICATION->AddChainItem('Оплата заказа',$arParams['SEF_FOLDER'].$arParams['SEF_URL_TEMPLATES']['payment']);
+
+$this->setFrameMode(false);
 \CJSCore::Init(["countdown"]);
 $countdownTime = FormatDate("Y/m/d H:i:s", MakeTimeStamp($arResult['ORDER']['DATE_INSERT']) + 90 * 60);
 ?>
@@ -30,21 +35,13 @@ $countdownTime = FormatDate("Y/m/d H:i:s", MakeTimeStamp($arResult['ORDER']['DAT
         </a>
         <p></p>
     	<h1 class="checkout-header">Оплата заказа</h1>
-		<div class="checkout-payment_description">
-			<b>Ваше номер заказа №<?=$_REQUEST['ORDER_ID'];?></b>
-			<span>
-				Для завершения оформления оплатите заказ в течение 90 минут, по истечении этого времени заказ будет аннулирован
+		<div class="checkout-payment_description" style="background: #fe4a5b;color: #fff;">
+			<b style="color: #fff;">Ваше номер заказа №<?=$_REQUEST['ORDER_ID'];?></b>
+			<span style="color: #fff;">
+                Товары зарезервированы и отложены для вас. В период с 12 по 13 января 2023 года наши менеджеры свяжутся с вами для проведения оплаты и уточнения сроков доставки.
 			</span>
 			<i id="getting-started"></i>
 		</div>
-<?
-$orderObj = \Bitrix\Sale\Order::load($_REQUEST['ORDER_ID']);
-$paymentCollection = $orderObj->getPaymentCollection();
-$payment = $paymentCollection[0];
-$service = \Bitrix\Sale\PaySystem\Manager::getObjectById($payment->getPaymentSystemId());
-$context = \Bitrix\Main\Application::getInstance()->getContext();
-$service->initiatePay($payment, $context->getRequest());
-?>
 	</div>
 	<div class="checkout-payment_right">
 		<div class="checkout-order_cart">
@@ -76,7 +73,7 @@ $service->initiatePay($payment, $context->getRequest());
                     <span class="right red">- <?=rtrim(rtrim(number_format((min($arResult['DIGIFT']['BALANCE_AMOUNT'],$arResult['ORDER']['PRICE'])),2,'.',' '),'0'),'.')?> ₽</span>
                 </div>
             </div>
-            <div class="checkout-order_next">
+            <div class="checkout-order_next<?if($arResult['IS_MOBILE']) echo ' mobile';?>">
                 <div class="checkout-order_next-total">
                     <div class="checkout-order_next-total_text">всего к оплате:</div>
                     <div class="checkout-order_next-total_price">
@@ -95,16 +92,3 @@ $service->initiatePay($payment, $context->getRequest());
         </div>
 	</div>
 </section>
-<script>
-    BX.ready(function(){
-        $("#getting-started")
-            .countdown("<?= $countdownTime ?>", function(event) {
-                $(this).text(
-                    event.strftime('%H:%M:%S')
-                );
-            }).on('finish.countdown', function(event) {
-                location.href = 'order_expired.php'
-
-            });
-    });
-</script>

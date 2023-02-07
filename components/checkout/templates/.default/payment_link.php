@@ -2,6 +2,14 @@
 $APPLICATION->AddChainItem('Оплата заказа',$arParams['SEF_FOLDER'].$arParams['SEF_URL_TEMPLATES']['payment']);
 
 $this->setFrameMode(false);
+?>
+<a href="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['payment']?>?ORDER_ID=<?=$_REQUEST['ORDER_ID']?>&PAYMENT_ID=<?=$_REQUEST['PAYMENT_ID']?>" id="pay_link" onclick="void(0);">
+    Переход на оплату...
+</a>
+<?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+$APPLICATION->AddChainItem('Оплата заказа',$arParams['SEF_FOLDER'].$arParams['SEF_URL_TEMPLATES']['payment']);
+
+$this->setFrameMode(false);
 \CJSCore::Init(["countdown"]);
 $countdownTime = FormatDate("Y/m/d H:i:s", MakeTimeStamp($arResult['ORDER']['DATE_INSERT']) + 90 * 60);
 ?>
@@ -37,14 +45,9 @@ $countdownTime = FormatDate("Y/m/d H:i:s", MakeTimeStamp($arResult['ORDER']['DAT
 			</span>
 			<i id="getting-started"></i>
 		</div>
-<?
-$orderObj = \Bitrix\Sale\Order::load($_REQUEST['ORDER_ID']);
-$paymentCollection = $orderObj->getPaymentCollection();
-$payment = $paymentCollection[0];
-$service = \Bitrix\Sale\PaySystem\Manager::getObjectById($payment->getPaymentSystemId());
-$context = \Bitrix\Main\Application::getInstance()->getContext();
-$service->initiatePay($payment, $context->getRequest());
-?>
+        <a class="btn btn-pay_link<?if($arResult['IS_MOBILE']) echo ' mobile';?>" href="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['payment']?>?ORDER_ID=<?=$_REQUEST['ORDER_ID']?>&PAYMENT_ID=<?=$_REQUEST['PAYMENT_ID']?>" id="pay_link" onclick="void(0);">
+            Переход на оплату
+        </a>
 	</div>
 	<div class="checkout-payment_right">
 		<div class="checkout-order_cart">
@@ -76,7 +79,7 @@ $service->initiatePay($payment, $context->getRequest());
                     <span class="right red">- <?=rtrim(rtrim(number_format((min($arResult['DIGIFT']['BALANCE_AMOUNT'],$arResult['ORDER']['PRICE'])),2,'.',' '),'0'),'.')?> ₽</span>
                 </div>
             </div>
-            <div class="checkout-order_next">
+            <div class="checkout-order_next<?if($arResult['IS_MOBILE']) echo ' mobile';?>">
                 <div class="checkout-order_next-total">
                     <div class="checkout-order_next-total_text">всего к оплате:</div>
                     <div class="checkout-order_next-total_price">
@@ -92,6 +95,11 @@ $service->initiatePay($payment, $context->getRequest());
                     </div>
                 </div>
             </div>
+            <?if($arResult['IS_MOBILE']):?>
+                <a class="btn btn-pay_link mobile" href="<?=$arParams['SEF_FOLDER']?><?=$arParams['SEF_URL_TEMPLATES']['payment']?>?ORDER_ID=<?=$_REQUEST['ORDER_ID']?>&PAYMENT_ID=<?=$_REQUEST['PAYMENT_ID']?>" id="pay_link" onclick="void(0);">
+                    Переход на оплату
+                </a>
+            <?endif;?>
         </div>
 	</div>
 </section>
